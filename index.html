@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ulavan Tech — Home</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="index.html">
+        <span class="logo-mark">🌿</span>
+        <div>
+          <h1>Ulavan Tech</h1>
+          <p class="logo-tagline">Tamil Nadu Crop Health Scanner</p>
+        </div>
+      </a>
+      <input id="search" class="search" type="search" placeholder="Search crops or problems (weevil, mildew, borer…)…" autocomplete="off" data-i18n="search_ph">
+      <div id="lang-wrap"></div>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="detection.html" data-i18n="nav_detection">Detection</a>
+      <a href="history.html" data-i18n="nav_history">History</a>
+      <a href="about.html" data-i18n="nav_project">Project</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="page-title">
+      <h2 data-i18n="home_title">Select a crop</h2>
+      <p data-i18n="home_desc">Tap a crop to see every pest, disease and nutrition problem that affects it — then tap any problem for signs and the relief/treatment solution.</p>
+      <p id="search-count" class="search-count"></p>
+    </section>
+
+    <section id="home-grid" class="grid" aria-live="polite"></section>
+  </main>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div id="modal-card" class="modal-card">
+      <button id="modal-close" class="close-btn" aria-label="Close" data-i18n="close">✕</button>
+
+      <!-- VIEW 1: crop summary + problem list -->
+      <div id="crop-view">
+        <div id="modal-photo" class="modal-photo"></div>
+        <h2 id="modal-name"></h2>
+        <span id="modal-status" class="status-badge"></span>
+        <p id="modal-message" class="modal-message"></p>
+        <button id="modal-action" class="btn block hidden"></button>
+
+        <h3 class="prob-heading" data-i18n="common_problems">Common problems</h3>
+        <div id="problem-list" class="problem-list"></div>
+      </div>
+
+      <!-- VIEW 2: one problem, full detail -->
+      <div id="problem-view" class="hidden">
+        <button id="prob-back" class="back-btn" data-i18n="back_to_problems">← Back to problems</button>
+        
+        <span id="prob-name" class="prob-name"></span>
+        <span id="prob-type" class="risk-badge"></span>
+        <div class="prob-block">
+          <h4 data-i18n="symptoms">Symptoms / signs</h4>
+          <ul id="prob-signs"></ul>
+        </div>
+        <div class="prob-block">
+          <h4 data-i18n="causes">What causes it</h4>
+          <p id="prob-cause" class="prob-p"></p>
+        </div>
+        <div class="prob-block sol">
+          <h4 data-i18n="solution">Solution / treatment — step by step</h4>
+          <ol id="prob-steps" class="prob-steps"></ol>
+        </div>
+        <button id="prob-detect" class="btn block hidden"></button>
+      </div>
+    </div>
+  </div>
+
+<script src="problems.js"></script>
+<script src="problems-ta.js"></script>
+<script src="problems-hi.js"></script>
+<script src="problems-te.js"></script>
+<script src="problems-kn.js"></script>
+<script src="problems-ml.js"></script>
+<script src="problems-bn.js"></script>
+<script src="problems-mr.js"></script>
+<script src="langs.js"></script>
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+<script src="chat-key.js"></script>
+  <script src="chatbot.js?v=9"></script>
+</body>
+</html>

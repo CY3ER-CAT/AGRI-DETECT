@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ulavan Tech — The Project</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="index.html">
+        <span class="logo-mark">🌿</span>
+        <div>
+          <h1>Ulavan Tech</h1>
+          <p class="logo-tagline">Tamil Nadu Crop Health Scanner</p>
+        </div>
+      </a>
+      <div id="lang-wrap"></div>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="detection.html" data-i18n="nav_detection">Detection</a>
+      <a href="history.html" data-i18n="nav_history">History</a>
+      <a href="about.html" data-i18n="nav_project">Project</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="page-title">
+      <h2 data-i18n="about_title">The project</h2>
+      <p>C29 · AI Immersion Task 01 — Design Thinking for an AI-powered early-detection system for Red Palm Weevil on date palms. By Naveenprasanth M (B.E CSE, Cyber Security).</p>
+    </section>
+
+    <div class="phase-card">
+      <span class="phase-tag">Phase 01 · Empathise</span>
+      <p>Field visit to a date palm farm, Rathinam Technical Campus, Coimbatore. Three observations: a healthy 3-year-old palm crown, damaged shoots with weevil-associated holes, and the weekly manual inspection routine (~10 min per plant).</p>
+      <div class="stat-grid">
+        <div class="stat"><div class="num">110</div><div class="lbl">palms observed</div></div>
+        <div class="stat"><div class="num">9%</div><div class="lbl">shoot damage (10/110)</div></div>
+        <div class="stat"><div class="num">1 wk</div><div class="lbl">inspection interval</div></div>
+        <div class="stat"><div class="num">4-5 d</div><div class="lbl">treatment coverage</div></div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <span class="phase-tag">Phase 02 · Define</span>
+      <p><b>Problem:</b> farmers rely on fixed weekly visual inspection, so Red Palm Weevil damage progresses undetected for 2–3 days each cycle — the treatment protects for 4–5 days, shorter than the 7-day check interval. Every current method is scheduled, not signal-driven.</p>
+      <h3>Objectives</h3>
+      <ol>
+        <li>Screen suspected infestation within 48 hours.</li>
+        <li>Enable faster inspection and response after an AI warning.</li>
+        <li>Create a digital inspection record for all 110 palms.</li>
+        <li>Prototype a low-cost mobile computer-vision detection system.</li>
+      </ol>
+    </div>
+
+    <div class="phase-card">
+      <span class="phase-tag alt">Phase 03 · Ideate</span>
+      <p><b>Winner — 4.45/5:</b> AI-powered mobile computer-vision detection. A farmer photos the palm crown; a CV model analyses it for holes, damaged shoots and abnormal crown areas; the app returns a Low / Medium / High risk result and stores the inspection history.</p>
+      <p>Runner-up (4.15/5): fixed AI camera monitoring — lost on hardware cost and scaling to 110 palms vs. a phone used during the routine.</p>
+      <div class="diagram">
+        <div class="node"><b>Real-World Source</b><br>Date palm + visible damage</div>
+        <div class="arrow">↓</div>
+        <div class="node"><b>Data Acquisition</b><br>Mobile phone camera → app image upload</div>
+        <div class="arrow">↓</div>
+        <div class="node"><b>Pre-processing</b><br>Resize, crop, normalise</div>
+        <div class="arrow">↓</div>
+        <div class="node"><b>AI / ML Engine</b><br>Computer-vision model (YOLO)</div>
+        <div class="arrow">↓</div>
+        <div class="node"><b>Decision Logic</b><br>Detect damage + assign risk level</div>
+        <div class="arrow">↓</div>
+        <div class="node"><b>User Interface</b><br>Mobile app result + history</div>
+      </div>
+      <p class="notice" style="margin-top:12px">Feedback loop: the farmer verifies the AI result; confirmed images/labels can be added to the training dataset to improve the model.</p>
+    </div>
+
+    <div class="phase-card">
+      <span class="phase-tag">Phase 04 · Deliver</span>
+      <div class="compare">
+        <div class="col before">
+          <h4>Before</h4>
+          <ul>
+            <li>Manual inspection, no digital AI screening</li>
+            <li>Delayed recognition between rounds</li>
+            <li>Signs assessed by human eye only</li>
+            <li>Little structured history</li>
+          </ul>
+        </div>
+        <div class="col after">
+          <h4>After</h4>
+          <ul>
+            <li>AI-assisted screening during inspection</li>
+            <li>Immediate Low / Med / High result</li>
+            <li>Early warning on visible indicators</li>
+            <li>Digital history by palm / zone</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top:12px"><b>Feasibility:</b> student-team buildable as a mobile/web prototype + trained CV model. <b>Cost:</b> low — smartphone camera + software. <b>Risk:</b> false positives — farmer verifies before treatment, model improves with validated images.</p>
+    </div>
+
+    <div class="phase-card">
+      <span class="phase-tag alt">Phase 05 · Conclusion</span>
+      <ul>
+        <li>Real field data beats assumed problems.</li>
+        <li>AI sharpens root-cause thinking.</li>
+        <li>A scoring matrix forces honest trade-offs.</li>
+        <li>A simple, testable AI beats complex hardware for a student prototype.</li>
+      </ul>
+      <p class="notice" style="margin-top:12px"><b>AI usage declaration:</b> ChatGPT was used as a thinking partner for root-cause analysis, stakeholder mapping, ideation, and solution comparison. All field observations, numbers and the original problem statement are my own, verified in person.</p>
+    </div>
+  </main>
+
+  <script src="problems.js"></script>
+  <script src="problems-ta.js"></script>
+  <script src="problems-hi.js"></script>
+  <script src="problems-te.js"></script>
+  <script src="problems-kn.js"></script>
+  <script src="problems-ml.js"></script>
+  <script src="problems-bn.js"></script>
+  <script src="problems-mr.js"></script>
+  <script src="langs.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+  <script src="chat-key.js"></script>
+  <script src="chatbot.js?v=9"></script>
+</body>
+</html>
