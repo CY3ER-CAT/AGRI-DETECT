@@ -337,10 +337,21 @@ function markActiveNav() {
     var oldSave = document.getElementById("settings-save");
     if (oldSave) oldSave.addEventListener("click", persist);
 
+    /* Typing a Gemini key switches the provider to Gemini automatically. */
+    var provSel = document.getElementById("set-provider");
+    var keyInput = document.getElementById("set-gemini-key");
+    if (provSel && keyInput) {
+      keyInput.addEventListener("input", function () {
+        if (keyInput.value && keyInput.value.trim()) {
+          provSel.value = "gemini";
+          provSel.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      });
+    }
+
     /* Show/hide the API key text with the eye toggle. */
     var visBtn = document.getElementById("toggle-key-vis");
-    var keyInput = document.getElementById("set-gemini-key");
-    if (visBtn && keyInput) {
+    if (visBtn && keyInput && keyInput.id === "set-gemini-key") {
       visBtn.addEventListener("click", function () {
         var show = keyInput.type === "password";
         keyInput.type = show ? "text" : "password";
