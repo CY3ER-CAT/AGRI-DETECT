@@ -36,21 +36,22 @@ function saveHistory(history) {
 }
 
 function historyItemHtml(rec) {
+  const crop = esc(rec.crop);
   const thumb = rec.thumb
-    ? '<img class="history-thumb" src="' + rec.thumb + '" alt="Palm photo">'
+    ? '<img class="history-thumb" src="' + esc(rec.thumb) + '" alt="Palm photo">'
     : '<div class="history-thumb">🌴</div>';
-  const note = rec.note ? '<p class="history-note">' + rec.note + "</p>" : "";
-  const conf = rec.confidence ? rec.confidence + "%" : "";
+  const note = rec.note ? '<p class="history-note">' + esc(rec.note) + "</p>" : "";
+  const conf = rec.confidence ? esc(rec.confidence) + "%" : "";
   const meth = rec.method === "vision" ? t("method_vision") : rec.method === "local" ? t("method_local") : "";
   const meta = (conf || meth)
     ? '<span class="history-meta">' + meth + (meth && conf ? " · " : "") + conf + "</span>"
     : "";
   return `
-    <div class="history-item" data-id="${rec.id}">
+    <div class="history-item" data-id="${esc(rec.id)}">
       ${thumb}
       <div class="history-info">
         <div class="row">
-          <span class="crop">${rec.crop}</span>
+          <span class="crop">${crop}</span>
           <span class="risk-badge ${riskClass(rec.risk)}">${riskLabel(rec.risk)}</span>
         </div>
         <div class="row" style="margin-top:4px">
@@ -64,15 +65,16 @@ function historyItemHtml(rec) {
 }
 
 function openHistoryDetail(rec) {
+  const crop = esc(rec.crop);
   const thumb = rec.thumb
-    ? '<img class="hm-thumb" src="' + rec.thumb + '" alt="Palm photo">'
+    ? '<img class="hm-thumb" src="' + esc(rec.thumb) + '" alt="Palm photo">'
     : '<div class="hm-thumb">🌴</div>';
   const findings = (Array.isArray(rec.findings) ? rec.findings : String(rec.findings || "").split(","))
     .map((f) => (f || "").trim())
     .filter(Boolean)
-    .map((f) => t("f_" + f) || f)
+    .map((f) => t("f_" + f) || esc(f))
     .join(" · ");
-  const conf = rec.confidence ? rec.confidence + "%" : "";
+  const conf = rec.confidence ? esc(rec.confidence) + "%" : "";
   const meth = rec.method === "vision" ? t("method_vision") : rec.method === "local" ? t("method_local") : "";
   const overlay = document.createElement("div");
   overlay.className = "history-overlay";
@@ -80,12 +82,12 @@ function openHistoryDetail(rec) {
     <div class="history-modal">
       ${thumb}
       <div class="row">
-        <span class="hm-crop">${rec.crop}</span>
+        <span class="hm-crop">${crop}</span>
         <span class="risk-badge ${riskClass(rec.risk)}">${riskLabel(rec.risk)}</span>
       </div>
       <div class="hm-meta">${rec.date}${(meth || conf) ? " · " + [meth, conf].filter(Boolean).join(" · ") : ""}</div>
       ${findings ? '<p class="hm-note">' + findings + "</p>" : ""}
-      ${rec.note ? '<p class="hm-note">' + rec.note + "</p>" : ""}
+      ${rec.note ? '<p class="hm-note">' + esc(rec.note) + "</p>" : ""}
       <div style="display:flex;gap:10px;margin-top:14px">
         <a class="btn" style="flex:1;text-align:center" href="detection.html?crop=${encodeURIComponent(rec.cropId || "date-palm")}&name=${encodeURIComponent(rec.crop.replace(/ — .*$/, ""))}">${t("rescan")}</a>
         <button class="btn" style="flex:1" id="hm-close">${t("close")}</button>

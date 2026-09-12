@@ -31,8 +31,15 @@
 
   window.riskLabel = function (risk) {
     var map = RISK_LABEL[window.LANG] || RISK_LABEL.en;
-    key = (risk || "").toLowerCase();
+    var key = (risk || "").toLowerCase();
     return (map && map[risk]) || (map && map[key]) || risk;
+  };
+
+  /* HTML-escape a string before it is interpolated into innerHTML. */
+  window.esc = function (s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
   };
 
   /* Replace __X__ placeholders in a UI string. */
@@ -66,6 +73,37 @@
   };
 
   window.onLangChange = null;
+
+  /* Lazy-load a language's problem data file on demand. The HTML pages now
+     ship only problems.js (English fallback) + the active language file, so
+     unused languages are not downloaded/parsed on every visit. */
+  var LOADED = { en: true };
+  var PROBLEM_FILE = {
+    ta: "problems-ta.js",
+    hi: "problems-hi.js",
+    te: "problems-te.js",
+    kn: "problems-kn.js",
+    ml: "problems-ml.js",
+    bn: "problems-bn.js",
+    mr: "problems-mr.js",
+  };
+  var PROBLEM_VAR = {
+    ta: "PROBLEMS_TA",
+    hi: "PROBLEMS_HI",
+    te: "PROBLEMS_TE",
+    kn: "PROBLEMS_KN",
+    ml: "PROBLEMS_ML",
+    bn: "PROBLEMS_BN",
+    mr: "PROBLEMS_MR",
+  };
+  window.ensureLangData = function (lang, cb) {
+    var v = PROBLEM_VAR[lang];
+    if (!v || LOADED[lang] || window[v]) { LOADED[lang] = true; if (cb) cb(); return; }
+    var s = document.createElement("script");
+    s.src = PROBLEM_FILE[lang];
+    s.onload = s.onerror = function () { LOADED[lang] = true; if (cb) cb(); };
+    document.head.appendChild(s);
+  };
 
   function renderStatic() {
     document.documentElement.lang = window.LANG;
@@ -108,16 +146,22 @@
     sel.addEventListener("change", function () {
       window.LANG = sel.value;
       localStorage.setItem(KEY, window.LANG);
-      renderStatic();
-      if (typeof window.onLangChange === "function") window.onLangChange();
+      /* Ensure the target language's problem data is loaded before
+         re-rendering so the UI never flashes English. */
+      ensureLangData(window.LANG, function () {
+        renderStatic();
+        if (typeof window.onLangChange === "function") window.onLangChange();
+      });
     });
     host.appendChild(sel);
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    buildSelector();
-    renderStatic();
-    if (typeof window.onLangChange === "function") window.onLangChange();
+    ensureLangData(window.LANG, function () {
+      buildSelector();
+      renderStatic();
+      if (typeof window.onLangChange === "function") window.onLangChange();
+    });
   });
 
   /* Re-run if the script loads after DOM ready. */
@@ -126,9 +170,11 @@
     setTimeout(function () {
       if (!done) {
         done = true;
-        buildSelector();
-        renderStatic();
-        if (typeof window.onLangChange === "function") window.onLangChange();
+        ensureLangData(window.LANG, function () {
+          buildSelector();
+          renderStatic();
+          if (typeof window.onLangChange === "function") window.onLangChange();
+        });
       }
     }, 0);
   }

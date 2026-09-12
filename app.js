@@ -228,7 +228,8 @@ function wireModal() {
 }
 
 function markActiveNav() {
-  const link = document.querySelector('.nav a[href="' + location.pathname.split("/").pop() + '"]');
+  const file = location.pathname.split("/").pop() || "index.html";
+  const link = document.querySelector('.nav a[href="' + file + '"]');
   if (link) link.classList.add("active");
 }
 

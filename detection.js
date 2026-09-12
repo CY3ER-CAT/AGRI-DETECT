@@ -564,7 +564,9 @@ function localAnalyse() {
       risk = healthToRisk(avgH).risk;
       confBase = 55 + Math.round((1 - avgH) * 35) + Math.round(clarity * 10);
     } else {
-      risk = "medium" === healthToRisk(avgH).risk && damageCount === 1 ? "medium" : healthToRisk(avgH).risk;
+      /* A single damage photo should never be scored below "medium". */
+      const base = healthToRisk(avgH).risk;
+      risk = (damageCount === 1 && base === "low") ? "medium" : base;
       confBase = 45 + Math.round(clarity * 30);
     }
     const confidence = Math.max(35, Math.min(92, Math.round(confBase * (0.7 + 0.3 * trust))));
@@ -658,10 +660,13 @@ function geminiVision(shotsToAnalyse, cfg, cropName) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 90000);
   const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
-    encodeURIComponent(cfg.geminiModel) + ":generateContent?key=" + encodeURIComponent(cfg.geminiKey);
+    encodeURIComponent(cfg.geminiModel) + ":generateContent";
   return fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": cfg.geminiKey
+    },
     body: JSON.stringify({
       contents: [{ role: "user", parts }],
       generationConfig: { responseMimeType: "application/json", temperature: 0.2 }
@@ -773,7 +778,8 @@ function resizeDataUrl(dataUrl, size) {
 /* ---------------------------- Wire up ---------------------------- */
 (function initCropLabel() {
   const p = new URLSearchParams(window.location.search);
-  const name = decodeURIComponent(p.get("name") || "");
+  let name = "";
+  try { name = decodeURIComponent(p.get("name") || ""); } catch (e) { name = ""; }
   const el = document.getElementById("guided-desc");
   function apply() {
     if (!el || !name) return;
@@ -786,8 +792,9 @@ function resizeDataUrl(dataUrl, size) {
 
 function saveToHistory(risk, thumbs) {
   const p = new URLSearchParams(window.location.search);
-  const cropId = decodeURIComponent(p.get("crop") || "date-palm");
-  const cropName = decodeURIComponent(p.get("name") || "Date Palm");
+  let cropId = "date-palm", cropName = "Date Palm";
+  try { cropId = decodeURIComponent(p.get("crop") || "date-palm"); } catch (e) {}
+  try { cropName = decodeURIComponent(p.get("name") || "Date Palm"); } catch (e) {}
   const h = JSON.parse(localStorage.getItem("agri_history") || "[]");
   h.unshift({
     id: Date.now(),
@@ -878,8 +885,15 @@ function fbVote(correct) {
       findings: window._currentFindings || "",
       thumbs
     });
-    localStorage.setItem("ulavanTrainLog", JSON.stringify(log));
-    if (thumbsEl) thumbsEl.textContent = t("fb_saved") + " · " + log.length;
+    /* Cap the feedback log so localStorage can never overflow silently. */
+    if (log.length > 200) log.splice(0, log.length - 200);
+    let saved = log.length;
+    try {
+      localStorage.setItem("ulavanTrainLog", JSON.stringify(log));
+    } catch (e) {
+      saved = log.length;   /* keep UI honest even if quota is hit */
+    }
+    if (thumbsEl) thumbsEl.textContent = t("fb_saved") + " · " + saved;
     ["fb-yes", "fb-no"].forEach((id) => {
       const b = document.getElementById(id);
       if (b) b.disabled = true;

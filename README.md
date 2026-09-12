@@ -244,7 +244,15 @@ Provider Free/Gemini, explicit **Save** button, key show/hide toggle, fixed read
 - On AI quota exhaustion, the app says so honestly and stays on the offline engine
 
 ### 6. Offline-first PWA
-Service worker (currently `agridetect-v41`) caches every page, all localized data, the vendored TF.js, and the model weights. `VERSION` is bumped on every change so phones pull updates.
+Service worker (currently `agridetect-v42`) caches every page, all localized data, the vendored TF.js, and the model weights. `VERSION` is bumped on every change so phones pull updates.
+
+### 7. Security & performance pass (from a full code review)
+- **Stored XSS fixed** — the `name` URL parameter is escaped before any `innerHTML` interpolation (History list + detail modal both escaped). A crafted `detection.html?name=<img onerror=…>` link can no longer run attacker JS or exfiltrate the stored Gemini key.
+- **No hidden third-party calls** — the undisclosed `text.pollinations.ai` chat fallback was removed completely. Live AI now uses *only* the user's own Gemini key; without a key the chat gives an honest offline reply.
+- **API key moved out of URLs** — Gemini requests now send the key via the `x-goog-api-key` header instead of `?key=…`, so it won't leak through browser history or proxy logs.
+- **Content-Security-Policy added** on every page (`script-src 'self'`, `connect-src` limited to Google's Gemini API, no inline scripts). The detection page additionally needs `'unsafe-eval'` for TensorFlow.js's WebGL shader compiler.
+- **Fixed**: missing `var` (globally leaked `key`) in `riskLabel`; dead no-op conditional in risk scoring; fragile active-nav fallback at bare `/`; unbounded `ulavanTrainLog` (now capped at 200 + quota-safe).
+- **~2 MB lighter first load** — only the active language's problem file is parsed; others lazy-load on language switch. Manual `?v=` cache-busting removed (the SW `VERSION` is the single invalidation point).
 
 ---
 

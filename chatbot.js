@@ -480,15 +480,6 @@
     return (c && c.content && c.content.trim()) ? c.content.trim() : null;
   }
 
-  function pollinationsPost(msgs) {
-    return postChat(
-      "https://text.pollinations.ai/openai",
-      { "Content-Type": "application/json" },
-      { model: "openai", messages: msgs, stream: false },
-      new AbortController(), 30000
-    ).then(choiceContent);
-  }
-
   /* Gemini text reply via generateContent (free tier). Accepts the same
      {role, content} message list the other providers use. */
   function geminiChat(key, model, msgs) {
@@ -505,8 +496,8 @@
     };
     return postChat(
       "https://generativelanguage.googleapis.com/v1beta/models/" +
-        encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(key),
-      { "Content-Type": "application/json" },
+        encodeURIComponent(model) + ":generateContent",
+      { "Content-Type": "application/json", "x-goog-api-key": key },
       body,
       new AbortController(), 60000
     ).then(function (j) {
@@ -550,18 +541,15 @@
     }
 
     var gemini = function () {
-      if (cfg.geminiKey) {
-        return retry(function () {
-          return geminiChat(cfg.geminiKey, cfg.geminiModel || DEFAULT_GEMINI_MODEL, msgs);
-        }, cfg.provider === "gemini" ? 3 : 2, 3500);
-      }
-      return Promise.resolve(null);
+      if (!cfg.geminiKey) return Promise.resolve(null);
+      return retry(function () {
+        return geminiChat(cfg.geminiKey, cfg.geminiModel || DEFAULT_GEMINI_MODEL, msgs);
+      }, cfg.provider === "gemini" ? 3 : 2, 3500);
     };
-    var free = function () { return pollinationsPost(msgs); };
 
-    var chain;
-    if (cfg.provider === "gemini") chain = [gemini, free];
-    else chain = cfg.geminiKey ? [gemini, free] : [free];
+    /* Gemini is the only live provider. With no user key the live model
+       is simply unavailable — the caller shows the honest "offline" reply. */
+    var chain = (cfg.provider === "gemini" || cfg.geminiKey) ? [gemini] : [];
 
     return chain.reduce(function (acc, step) {
       return acc.then(function (prev) {
