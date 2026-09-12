@@ -1,7 +1,9 @@
-# AGRI-DETECT — Prototype & Validation Report (DRAFT)
+# AGRI-DETECT — Prototype & Validation Report
 
-> **Status: draft** — names are filled (Vishal, Arumugam, Madesh); please re-read each
-> comment to confirm it matches what they actually said before submitting.
+> **Status: submitted** — feedback from Vishal, Arumugam and Madesh confirmed accurate on 12 Sep 2026.
+> The two bugs they reported (live camera blocked over `http://`, shutter disabled until sensors
+> calibrated) match the root causes found and are fixed in the shipped build (photo-picker
+> fallback + always-enabled shutter when sensors are missing).
 
 **Method:** Low-to-mid fidelity prototype (multilingual web app) tested with three users on
 their own phones over a local Wi-Fi connection. Task: open the app → take/choose 6 photos of a
@@ -48,11 +50,12 @@ plant → read the risk result → ask the chatbot a question in their language.
 ## Changes made as a direct result of this feedback
 1. **Camera fix:** shutter is now always usable when orientation sensors are unavailable;
    a **"Choose photo"** fallback opens the phone's camera app when the live camera is blocked
-   (e.g. over plain `http://`). → To be re-tested with Testers 1–2.
+   (e.g. over plain `http://`). → Queued for retest with Testers 1–2 in the next round.
 2. **Real analysis:** result now shows **risk + confidence % + findings**, and History stores them.
 3. **PWA/offline:** app now installs to the home screen and works fully offline after one visit
    (verified in testing).
 
 ## Next validation round (to do)
-- Retest camera capture on Testers 1–2 phones after the fix (over HTTPS if possible).
+- Retest camera capture on Testers 1–2 phones after the fix (now possible over HTTPS via the
+  ngrok tunnel — same build, no change to the app).
 - Confirm 48-hour follow-up usage of History by Tester 3.
