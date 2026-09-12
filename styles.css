@@ -1678,10 +1678,40 @@ body.cam-open .container > .page-title {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+  margin-top: 4px;
 }
 .settings-row .btn {
   flex: 1;
   min-width: 130px;
+}
+.settings-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--green);
+  text-decoration: none;
+}
+.settings-link:hover {
+  text-decoration: underline;
+}
+.settings-save {
+  flex: 1;
+  min-width: 130px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: var(--green);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.settings-save:hover {
+  filter: brightness(1.08);
+}
+.settings-save:active {
+  filter: brightness(0.95);
 }
 .settings-saved {
   font-size: .85rem;

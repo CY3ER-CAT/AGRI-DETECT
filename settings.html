@@ -55,6 +55,8 @@
           <label for="set-gemini-key" data-i18n="set_gemini_key">Gemini API key</label>
           <input id="set-gemini-key" type="password" autocomplete="off" spellcheck="false"
                  placeholder="AIza…" data-i18n-placeholder="set_gemini_ph">
+          <a class="settings-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener"
+             data-i18n="set_get_key">Get a free Gemini key →</a>
         </div>
         <div class="settings-field">
           <label for="set-gemini-model" data-i18n="set_gemini_model">Gemini model</label>
@@ -72,6 +74,7 @@
                  placeholder="openai/gpt-4o-mini" data-i18n-placeholder="set_or_mph">
         </div>
         <div class="settings-row">
+          <button id="settings-save" class="settings-save" data-i18n="set_save">Save</button>
           <span id="settings-saved" class="settings-saved hidden">✓ Saved</span>
         </div>
       </div>
