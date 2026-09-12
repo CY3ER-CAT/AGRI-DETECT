@@ -796,7 +796,7 @@ function saveToHistory(risk, thumbs) {
   try { cropId = decodeURIComponent(p.get("crop") || "date-palm"); } catch (e) {}
   try { cropName = decodeURIComponent(p.get("name") || "Date Palm"); } catch (e) {}
   const h = JSON.parse(localStorage.getItem("agri_history") || "[]");
-  h.unshift({
+  const rec = {
     id: Date.now(),
     crop: cropName,
     cropId,
@@ -807,8 +807,15 @@ function saveToHistory(risk, thumbs) {
     confidence: window._currentConfidence || 0,
     method: window._currentMethod || "",
     findings: window._currentFindings || "",
-  });
+  };
+  /* Medium/high risk palms get a 48-hour recheck reminder. */
+  if (risk === "medium" || risk === "high") {
+    rec.followUpAt = Date.now() + 48 * 60 * 60 * 1000;
+    rec.followUpDone = false;
+  }
+  h.unshift(rec);
   localStorage.setItem("agri_history", JSON.stringify(h.slice(0, 50)));
+  if (window.followupSync) window.followupSync();
 }
 
 document.getElementById("start-cam").addEventListener("click", openCapture);

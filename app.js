@@ -233,11 +233,104 @@ function markActiveNav() {
   if (link) link.classList.add("active");
 }
 
+/* ---------- 48h follow-up reminders (shared, ran on every page) ---------- */
+var FOLLOWUP_CACHE = "agridetect-followups";
+var FOLLOWUP_URL = "__followups__.json";
+
+/* Mirror follow-up records into a Cache entry so the service worker can
+   re-notify overdue rechecks even with no page open. */
+window.followupSync = function () {
+  try {
+    if (!("caches" in window)) return;
+    var h = JSON.parse(localStorage.getItem("agri_history") || "[]");
+    var due = h
+      .map(function (r) {
+        return { id: r.id, crop: r.crop, at: r.followUpAt, done: !!r.followUpDone };
+      })
+      .filter(function (x) { return x.at; });
+    caches.open(FOLLOWUP_CACHE).then(function (c) {
+      return c.put(FOLLOWUP_URL, new Response(JSON.stringify(due)));
+    }).catch(function () {});
+  } catch (e) {}
+};
+
+/* Check for due follow-ups on every app open (works on all browsers). */
+function checkFollowUps() {
+  followupSync();
+  try {
+    var h = JSON.parse(localStorage.getItem("agri_history") || "[]");
+    var changed = false;
+    var granted = typeof Notification !== "undefined" && Notification.permission === "granted";
+    h.forEach(function (r) {
+      if (!r.followUpAt || r.followUpDone || Date.now() < r.followUpAt) return;
+      if (granted) {
+        try {
+          new Notification(t("followup_title"), {
+            body: fill(t("followup_body"), { CROP: r.crop }),
+            icon: "icons/icon-192.png",
+          });
+        } catch (e) {}
+      }
+      r.followUpDone = true;
+      changed = true;
+    });
+    if (changed) {
+      localStorage.setItem("agri_history", JSON.stringify(h));
+      followupSync();
+    }
+  } catch (e) {}
+}
+
+/* Progressive enhancement: let the worker re-notify overdue rechecks when
+   the app is closed (Android Chrome periodic background sync). */
+function registerPeriodicSync() {
+  try {
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.ready.then(function (reg) {
+      if (reg.periodicSync) {
+        reg.periodicSync.register("followup-check", { minInterval: 60 * 60 * 1000 })
+          .catch(function () {});
+      }
+    }).catch(function () {});
+  } catch (e) {}
+}
+
+function wireReminderUI() {
+  var btn = document.getElementById("enable-reminders");
+  var status = document.getElementById("reminder-status");
+  if (!btn || !status) return;
+  function update() {
+    var g = typeof Notification !== "undefined" && Notification.permission === "granted";
+    var d = typeof Notification !== "undefined" && Notification.permission === "denied";
+    status.textContent = g ? t("rem_ok") : d ? t("rem_blocked") : "";
+    status.classList.toggle("hidden", !g && !d);
+    btn.classList.toggle("hidden", g || d);
+  }
+  btn.addEventListener("click", function () {
+    if ("Notification" in window) {
+      Notification.requestPermission().then(update).catch(update);
+    }
+  });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", update);
+  else update();
+}
+
 (function init() {
   wireModal();
   markActiveNav();
   wireSettings();
   wireKeyPrompt();
+  wireReminderUI();
+
+  function bootFollowUps() {
+    checkFollowUps();
+    registerPeriodicSync();
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootFollowUps);
+  } else {
+    bootFollowUps();
+  }
 
   const grid = document.getElementById("home-grid");
   const search = document.getElementById("search");

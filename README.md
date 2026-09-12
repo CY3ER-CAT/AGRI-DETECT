@@ -242,7 +242,7 @@ Provider Free/Gemini, explicit **Save** button, key show/hide toggle, fixed read
 - On AI quota exhaustion, the app says so honestly and stays on the offline engine
 
 ### 6. Offline-first PWA
-Service worker (currently `agridetect-v43`) caches every page, all localized data, the vendored TF.js, and the model weights. `VERSION` is bumped on every change so phones pull updates.
+Service worker (currently `agridetect-v44`) caches every page, all localized data, the vendored TF.js, and the model weights. `VERSION` is bumped on every change so phones pull updates.
 
 ### 7. Security & performance pass (from a full code review)
 - **Stored XSS fixed** — the `name` URL parameter is escaped before any `innerHTML` interpolation (History list + detail modal both escaped). A crafted `detection.html?name=<img onerror=…>` link can no longer run attacker JS or exfiltrate the stored Gemini key.
@@ -260,6 +260,16 @@ Retrained the on-device model on **40,000 images (20k healthy + 20k diseased, ev
 - Parallel training: `tf.data` with 10-way prefetch/map + 10 intra-op threads; two-phase MobileNetV2 schedule (frozen backbone then fine-tuned top blocks) — identical to the proven v42 pipeline, just 2.5× the data.
 - Result: **99.13% on the 30,295 never-trained photos** vs 90.73% before; healthy recall **94.64%** (was 65.87%), diseased recall **99.50%**, every crop ≥93.5%. Worst offenders before (Orange 22.9%, Raspberry healthy 47.5%) now 97.4% / 94.0%.
 - Ship: TF.js graph-model export → quantized 4.4 MB → swapped into `models/plant-health/` (filenames unchanged), SW bumped to `agridetect-v43`, weights verified in a real browser under CSP.
+
+### 9. 48-hour recheck reminders + dead-code cleanup
+
+- **Removed dead code**: no-op `tokMin()` (chatbot.js) deleted — both ternary branches returned `1` and nothing called it.
+- **Follow-up reminders** close the gap between the README's 48-hour objective and the app's behaviour. Medium/high-risk scans now get a `followUpAt`/`followUpDone` flag on their History record:
+  - On every app open, `checkFollowUps()` fires a Notification for due rechecks (only when permission is granted) and marks them done.
+  - Settings page has an opt-in "Enable reminders" button — permission is requested from a user gesture there, never on first load.
+  - History shows a **"Recheck due"** badge on overdue scans and **"Recheck in 48h"** on pending ones, so users without notification access still see it.
+  - Progressive enhancement: the service worker mirrors the follow-up list into a tiny Cache entry and fires notification on `periodicsync` (Android Chrome) even when the app is closed.
+  - Fully client-side — no backend, no new dependency. Headless-tested (capt97): badges render, overdue marked done, pending untouched, low-risk unflagged.
 
 ---
 

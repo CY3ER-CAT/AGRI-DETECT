@@ -46,6 +46,11 @@ function historyItemHtml(rec) {
   const meta = (conf || meth)
     ? '<span class="history-meta">' + meth + (meth && conf ? " · " : "") + conf + "</span>"
     : "";
+  var followUpBadge = "";
+  if (rec.followUpAt && !rec.followUpDone) {
+    var overdue = Date.now() >= rec.followUpAt;
+    followUpBadge = '<span class="history-meta" style="margin-left:8px;color:' + (overdue ? "var(--red)" : "var(--mid)") + '">' + t(overdue ? "recheck_due" : "recheck_pending") + "</span>";
+  }
   return `
     <div class="history-item" data-id="${esc(rec.id)}">
       ${thumb}
@@ -58,7 +63,7 @@ function historyItemHtml(rec) {
           <span class="date">${rec.date}</span>
           <button class="del" data-del="${rec.id}" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem">${t("delete")}</button>
         </div>
-        ${meta}
+        ${meta}${followUpBadge}
         ${note}
       </div>
     </div>`;
@@ -85,7 +90,7 @@ function openHistoryDetail(rec) {
         <span class="hm-crop">${crop}</span>
         <span class="risk-badge ${riskClass(rec.risk)}">${riskLabel(rec.risk)}</span>
       </div>
-      <div class="hm-meta">${rec.date}${(meth || conf) ? " · " + [meth, conf].filter(Boolean).join(" · ") : ""}</div>
+      <div class="hm-meta">${rec.date}${(meth || conf) ? " · " + [meth, conf].filter(Boolean).join(" · ") : ""}${rec.followUpAt && !rec.followUpDone ? " · " + t(Date.now() >= rec.followUpAt ? "recheck_due" : "recheck_pending") : ""}</div>
       ${findings ? '<p class="hm-note">' + findings + "</p>" : ""}
       ${rec.note ? '<p class="hm-note">' + esc(rec.note) + "</p>" : ""}
       <div style="display:flex;gap:10px;margin-top:14px">

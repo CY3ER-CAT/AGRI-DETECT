@@ -216,10 +216,6 @@
   /* Word-overlap pick within a single crop: counts tokens of each problem
      name (current lang + English) that appear in the question, ignoring the
      crop's own name tokens so "mango" alone does not pick a random problem. */
-  function tokMin(w) {
-    return /[\u{0900}-\u{0FFF}]/u.test(w) ? 1 : 1;
-  }
-
   /* Token match: short tokens must be a whole word (avoids क रु collisions
      inside compound names); long tokens may also match as a substring. */
   function tokHit(t, w) {

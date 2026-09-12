@@ -1,7 +1,7 @@
 /* AGRI DETECT (Ulavan Tech) — offline-first service worker.
    Cache-first for same-origin GETs, network-first for page navigations,
    so the app works fully offline after first visit. */
-const VERSION = "agridetect-v43";
+const VERSION = "agridetect-v44";
 const CORE = [
   "./",
   "index.html",
@@ -78,5 +78,34 @@ self.addEventListener("fetch", function (e) {
         return res;
       }).catch(function () { return cached; });
     })
+  );
+});
+
+/* 48-hour recheck reminders: the app mirrors its follow-up list into a tiny
+   Cache entry. When a periodic sync fires we re-read it and notify for any
+   due/overdue rechecks — even if the app is not open. */
+self.addEventListener("periodicsync", function (e) {
+  if (e.tag !== "followup-check") return;
+  e.waitUntil(
+    caches.open("agridetect-followups")
+      .then(function (c) { return c.match("__followups__.json"); })
+      .then(function (res) {
+        if (!res) return null;
+        return res.json();
+      })
+      .then(function (list) {
+        if (!list || !list.length) return null;
+        var now = Date.now();
+        var due = list.filter(function (x) { return x.at && !x.done && now >= x.at; });
+        if (!due.length) return null;
+        return Promise.all(due.map(function (x) {
+          return self.registration.showNotification("48-hour recheck reminder", {
+            body: x.crop + " was flagged — recheck it now.",
+            icon: "icons/icon-192.png",
+            tag: "followup-" + x.id,
+          });
+        }));
+      })
+      .catch(function (err) { console.warn("followup sync:", err); })
   );
 });
