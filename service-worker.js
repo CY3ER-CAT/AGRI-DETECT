@@ -1,7 +1,7 @@
 /* AGRI DETECT (Ulavan Tech) — offline-first service worker.
    Cache-first for same-origin GETs, network-first for page navigations,
    so the app works fully offline after first visit. */
-const VERSION = "agridetect-v39";
+const VERSION = "agridetect-v40";
 const CORE = [
   "./",
   "index.html",

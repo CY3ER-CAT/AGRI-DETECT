@@ -598,7 +598,7 @@ function detectionCfg() {
      }
    } catch (e) {}
    if (!cfg.geminiKey && typeof window.GEMINI_KEY === "string") cfg.geminiKey = window.GEMINI_KEY;
-   if (!cfg.geminiModel) cfg.geminiModel = (typeof window.GEMINI_MODEL === "string") ? window.GEMINI_MODEL : "gemini-3.6-flash";
+   cfg.geminiModel = (typeof window.GEMINI_MODEL === "string") ? window.GEMINI_MODEL : "gemini-3.6-flash";
    return cfg;
  }
 

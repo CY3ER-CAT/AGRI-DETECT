@@ -52,14 +52,18 @@
         </div>
         <div class="settings-field">
           <label for="set-gemini-key" data-i18n="set_gemini_key">Gemini API key</label>
-          <input id="set-gemini-key" type="password" autocomplete="off" spellcheck="false"
-                 placeholder="AIza…" data-i18n-placeholder="set_gemini_ph">
+          <div class="key-wrap">
+            <input id="set-gemini-key" type="password" autocomplete="off" spellcheck="false"
+                   placeholder="AIza…" data-i18n-placeholder="set_gemini_ph">
+            <button id="toggle-key-vis" class="key-toggle" type="button" aria-label="Show/hide key" tabindex="0">👁</button>
+          </div>
           <a class="settings-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener"
              data-i18n="set_get_key">Get a free Gemini key →</a>
         </div>
         <div class="settings-field">
-          <label for="set-gemini-model" data-i18n="set_gemini_model">Gemini model</label>
-          <input id="set-gemini-model" type="text" autocomplete="off" spellcheck="false"
+          <label for="set-gemini-model" data-i18n="set_gemini_model">Gemini model
+            <span class="model-lock" title="Fixed model — read-only">🔒</span></label>
+          <input id="set-gemini-model" type="text" autocomplete="off" spellcheck="false" readonly
                  placeholder="gemini-3.6-flash" data-i18n-placeholder="set_gemini_mph">
         </div>
         <div class="settings-row">

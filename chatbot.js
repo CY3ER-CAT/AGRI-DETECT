@@ -444,7 +444,8 @@
            settings page, so app.js and chatbot.js agree). */
         out.provider = o.provider || out.provider;
         out.geminiKey = o.geminiKey || out.geminiKey;
-        out.geminiModel = o.geminiModel || out.geminiModel;
+        out.geminiModel = (typeof window.GEMINI_MODEL === "string" && window.GEMINI_MODEL)
+          ? window.GEMINI_MODEL : DEFAULT_GEMINI_MODEL;
       }
     } catch (e) {}
     return out;

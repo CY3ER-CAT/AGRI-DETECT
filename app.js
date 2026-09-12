@@ -273,14 +273,15 @@ function markActiveNav() {
 
   /* ---------- Settings panel ---------- */
   var CFG_KEY = "ulavanChatCfg";
+  var FIXED_GEMINI_MODEL = "gemini-3.6-flash";
 
   function settingsLoad() {
-    var c = { provider: "free", geminiKey: "", geminiModel: "" };
+    var c = { provider: "free", geminiKey: "", geminiModel: FIXED_GEMINI_MODEL };
     try {
       var s = window.localStorage && window.localStorage.getItem(CFG_KEY);
       if (s) c = Object.assign(c, JSON.parse(s));
     } catch (e) {}
-    if (!c.geminiModel && typeof window.GEMINI_MODEL === "string") c.geminiModel = window.GEMINI_MODEL;
+    c.geminiModel = (typeof window.GEMINI_MODEL === "string" && window.GEMINI_MODEL) ? window.GEMINI_MODEL : FIXED_GEMINI_MODEL;
     if (!c.geminiKey && typeof window.GEMINI_KEY === "string" && window.GEMINI_KEY) c.geminiKey = window.GEMINI_KEY;
     return c;
   }
@@ -313,7 +314,7 @@ function markActiveNav() {
       return {
         provider: document.getElementById("set-provider").value,
         geminiKey: (document.getElementById("set-gemini-key").value || "").trim(),
-        geminiModel: (document.getElementById("set-gemini-model").value || "").trim()
+        geminiModel: FIXED_GEMINI_MODEL
       };
     }
     function persist() {
@@ -335,6 +336,17 @@ function markActiveNav() {
       });
     var oldSave = document.getElementById("settings-save");
     if (oldSave) oldSave.addEventListener("click", persist);
+
+    /* Show/hide the API key text with the eye toggle. */
+    var visBtn = document.getElementById("toggle-key-vis");
+    var keyInput = document.getElementById("set-gemini-key");
+    if (visBtn && keyInput) {
+      visBtn.addEventListener("click", function () {
+        var show = keyInput.type === "password";
+        keyInput.type = show ? "text" : "password";
+        visBtn.textContent = show ? "🙈" : "👁";
+      });
+    }
   }
 
   /* Dismissible "Add key" banner shown on the home page when no Gemini
