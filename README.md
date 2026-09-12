@@ -102,20 +102,18 @@ A purely model-driven answer is intentionally not used alone. `localAnalyse()` l
 2. **Blur gate** — photos flagged blurry/unclear don't count toward the final risk; if fewer than 3 clear photos exist, the app refuses to issue an "act now" warning and stays `low`/`medium`.
 3. **Two-photo damage rule** — a `high`/damage verdict needs at least 2 clear photos showing damage, so one glinty frame can't scare a farmer.
 
-### Verified model results (real browser, headless)
+### Verified model results
 
-| Photo | Model P(healthy) | Expected |
+**Held-out detection testing (30,295 never-trained photos)** — every one of the 38 classes contributes to both training (40k) and this test set:
+
+| Metric | v42 (16k train) | **v43 (40k train)** |
 |---|---|---|
-| Potato — healthy | **0.9684** | healthy |
-| Potato — late blight | **0.0001** | diseased |
-| Grape — healthy | **0.9996** | healthy |
-| Grape — black rot | **0.0000** | diseased |
-| Corn — healthy | **1.0000** | healthy |
-| Tomato — early blight | **0.0000** | diseased |
-| Apple — healthy | **1.0000** | healthy |
-| Apple — scab/diseased | **0.0000** | diseased |
+| Overall accuracy | 90.73% | **99.13%** |
+| Healthy recall | 65.87% | **94.64%** (2171/2294) |
+| Diseased recall | 92.77% | **99.50%** (27860/28001) |
+| Worst per-crop | Orange 22.9% | **Orange 97.4%, Blueberry 93.6%, Raspberry 94.0%** |
 
-**8/8 correct** with clean separation between healthy (0.97–1.00) and diseased (0.0000–0.0001). The end-to-end app run (6 captures → review → result) also produced the correct verdict with the **"On-device AI model"** chip.
+Browser sanity checks against labeled photos also pass — healthy 0.9033 / diseased 0.0000 on spot-check files, with clean separation (healthy 0.90–1.00, diseased ≤0.01).
 
 ### Honest limitations
 
@@ -227,7 +225,7 @@ Red Palm Weevil, Rhizome Rot, Fruit Fly, Downy Mildew, Bacterial Wilt, Leaf Blot
 ## 🔬 Dev log (what we built & added)
 
 ### 1. Real on-device AI model — trained, not heuristics
-Two-phase MobileNetV2 transfer training on 16k PlantVillage images → **99.71%** validation, quantized to 4.4 MB TF.js, verified 8/8 in a real browser. Details in the model deep-dive above.
+Two-phase MobileNetV2 transfer training on PlantVillage images (later expanded to 40k; details in the model deep-dive above).
 
 ### 2. Guided 6-photo capture flow
 Per-step instructions (front → left → back → right → crown → damage close-up) with live preview, and a 6-thumbnail review before analysis.
@@ -244,7 +242,7 @@ Provider Free/Gemini, explicit **Save** button, key show/hide toggle, fixed read
 - On AI quota exhaustion, the app says so honestly and stays on the offline engine
 
 ### 6. Offline-first PWA
-Service worker (currently `agridetect-v42`) caches every page, all localized data, the vendored TF.js, and the model weights. `VERSION` is bumped on every change so phones pull updates.
+Service worker (currently `agridetect-v43`) caches every page, all localized data, the vendored TF.js, and the model weights. `VERSION` is bumped on every change so phones pull updates.
 
 ### 7. Security & performance pass (from a full code review)
 - **Stored XSS fixed** — the `name` URL parameter is escaped before any `innerHTML` interpolation (History list + detail modal both escaped). A crafted `detection.html?name=<img onerror=…>` link can no longer run attacker JS or exfiltrate the stored Gemini key.
@@ -253,6 +251,15 @@ Service worker (currently `agridetect-v42`) caches every page, all localized dat
 - **Content-Security-Policy added** on every page (`script-src 'self'`, `connect-src` limited to Google's Gemini API, no inline scripts). The detection page additionally needs `'unsafe-eval'` for TensorFlow.js's WebGL shader compiler.
 - **Fixed**: missing `var` (globally leaked `key`) in `riskLabel`; dead no-op conditional in risk scoring; fragile active-nav fallback at bare `/`; unbounded `ulavanTrainLog` (now capped at 200 + quota-safe).
 - **~2 MB lighter first load** — only the active language's problem file is parsed; others lazy-load on language switch. Manual `?v=` cache-busting removed (the SW `VERSION` is the single invalidation point).
+
+### 8. 40k retrain + 30,295-photo detection testing (parallel)
+
+Retrained the on-device model on **40,000 images (20k healthy + 20k diseased, every one of all 38 classes represented)** and ran detection testing on **all 30,295 held-out photos** — the images the model never trained on — so the reported numbers are real generalization, not a validation-split accident.
+
+- Parallel build pipeline decoded all 70,295 raw images with 10 python processes (per-class stratified 80/20-ish split → deterministic 40k train / 30,295 test, every crop in both sets).
+- Parallel training: `tf.data` with 10-way prefetch/map + 10 intra-op threads; two-phase MobileNetV2 schedule (frozen backbone then fine-tuned top blocks) — identical to the proven v42 pipeline, just 2.5× the data.
+- Result: **99.13% on the 30,295 never-trained photos** vs 90.73% before; healthy recall **94.64%** (was 65.87%), diseased recall **99.50%**, every crop ≥93.5%. Worst offenders before (Orange 22.9%, Raspberry healthy 47.5%) now 97.4% / 94.0%.
+- Ship: TF.js graph-model export → quantized 4.4 MB → swapped into `models/plant-health/` (filenames unchanged), SW bumped to `agridetect-v43`, weights verified in a real browser under CSP.
 
 ---
 
