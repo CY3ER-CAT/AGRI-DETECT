@@ -271,6 +271,7 @@ Retrained the on-device model on **40,000 images (20k healthy + 20k diseased, ev
   - Progressive enhancement: the service worker mirrors the follow-up list into a tiny Cache entry and fires notification on `periodicsync` (Android Chrome) even when the app is closed.
   - Fully client-side — no backend, no new dependency. Headless-tested (capt97): badges render, overdue marked done, pending untouched, low-risk unflagged.
   - Follow-up review fixes (capt98): the worker now marks notified records `done` in its cache mirror and the page reconciles those flags back into localStorage on open — so a closed-app reminder fires once, not hourly; the mirror carries already-localized title/body so background notifications match the farmer's language; the 9 reminder strings were added to all 8 language packs (not just en + ta).
+  - Race-condition follow-up (capt99): `checkFollowUps()` previously rebuilt the mirror from unreconciled localStorage *before* reading it back, so a `done:true` the worker had set while the app was closed got clobbered and the app re-notified once more on the next open. Reordered: reconcile the worker mirror into localStorage first, and only then rebuild the mirror and run the notify pass. Verified with a notification counter — SW-already-notified fires 0 times, un-notified fires exactly 1.
 
 ---
 

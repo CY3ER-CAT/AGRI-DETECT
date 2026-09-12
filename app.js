@@ -263,52 +263,64 @@ window.followupSync = function () {
    localStorage so a reminder fired while the app was closed is never
    re-fired from the page. */
 function checkFollowUps() {
-  followupSync();
+  /* Notify + persist pass. Runs only AFTER reconciliation has landed so the
+     mirror rebuild below cannot clobber a done:true the worker wrote while
+     the app was closed (which would re-notify a palm already reminded). */
+  var runNotifyPass = function () {
+    try {
+      var h = JSON.parse(localStorage.getItem("agri_history") || "[]");
+      var changed = false;
+      var granted = typeof Notification !== "undefined" && Notification.permission === "granted";
+      h.forEach(function (r) {
+        if (!r.followUpAt || r.followUpDone || Date.now() < r.followUpAt) return;
+        if (granted) {
+          try {
+            new Notification(t("followup_title"), {
+              body: fill(t("followup_body"), { CROP: r.crop }),
+              icon: "icons/icon-192.png",
+            });
+          } catch (e) {}
+        }
+        r.followUpDone = true;
+        changed = true;
+      });
+      if (changed) localStorage.setItem("agri_history", JSON.stringify(h));
+    } catch (e) {}
+    followupSync();
+  };
+
+  /* 1) Reconcile: read the worker's mirror (which may say done:true for a
+     palm already notified while the app was closed) and merge those flags
+     into localStorage BEFORE anything rewrites the mirror. */
   try {
     if ("caches" in window) {
-      caches.open(FOLLOWUP_CACHE).then(function (c) {
-        return c.match(FOLLOWUP_URL);
-      }).then(function (res) {
-        if (!res) return;
-        return res.json().then(function (mirror) {
-          var byId = {};
-          mirror.forEach(function (m) { byId[m.id] = m; });
-          var h = JSON.parse(localStorage.getItem("agri_history") || "[]");
-          var changed = false;
-          h.forEach(function (r) {
-            var m = byId[r.id];
-            if (r.followUpAt && m && m.done && !r.followUpDone) {
-              r.followUpDone = true;
-              changed = true;
-            }
-          });
-          if (changed) localStorage.setItem("agri_history", JSON.stringify(h));
-        });
-      }).catch(function () {});
+      caches.open(FOLLOWUP_CACHE)
+        .then(function (c) { return c.match(FOLLOWUP_URL); })
+        .then(function (res) { return res ? res.json() : null; })
+        .then(function (mirror) {
+          if (mirror) {
+            var byId = {};
+            mirror.forEach(function (m) { byId[m.id] = m; });
+            var h = JSON.parse(localStorage.getItem("agri_history") || "[]");
+            var changed = false;
+            h.forEach(function (r) {
+              var m = byId[r.id];
+              if (r.followUpAt && m && m.done && !r.followUpDone) {
+                r.followUpDone = true;
+                changed = true;
+              }
+            });
+            if (changed) localStorage.setItem("agri_history", JSON.stringify(h));
+          }
+        })
+        .catch(function () {})
+        .then(runNotifyPass);
+    } else {
+      runNotifyPass();
     }
-  } catch (e) {}
-  try {
-    var h = JSON.parse(localStorage.getItem("agri_history") || "[]");
-    var changed = false;
-    var granted = typeof Notification !== "undefined" && Notification.permission === "granted";
-    h.forEach(function (r) {
-      if (!r.followUpAt || r.followUpDone || Date.now() < r.followUpAt) return;
-      if (granted) {
-        try {
-          new Notification(t("followup_title"), {
-            body: fill(t("followup_body"), { CROP: r.crop }),
-            icon: "icons/icon-192.png",
-          });
-        } catch (e) {}
-      }
-      r.followUpDone = true;
-      changed = true;
-    });
-    if (changed) {
-      localStorage.setItem("agri_history", JSON.stringify(h));
-      followupSync();
-    }
-  } catch (e) {}
+  } catch (e) {
+    runNotifyPass();
+  }
 }
 
 /* Progressive enhancement: let the worker re-notify overdue rechecks when
