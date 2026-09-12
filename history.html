@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ulavan Tech — Inspection History</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1b5e20">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="index.html">
+        <span class="logo-mark">🌿</span>
+        <div>
+          <h1>Ulavan Tech</h1>
+          <p class="logo-tagline">Tamil Nadu Crop Health Scanner</p>
+        </div>
+      </a>
+      <div id="lang-wrap"></div>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="detection.html" data-i18n="nav_detection">Detection</a>
+      <a href="history.html" data-i18n="nav_history">History</a>
+      <a href="about.html" data-i18n="nav_project">Project</a>
+      <a href="settings.html" data-i18n="nav_settings">AI Settings</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="page-title">
+      <h2 data-i18n="history_title">Inspection history</h2>
+      <p data-i18n="history_desc">A digital record of every palm screen — one of the four project objectives (digital record for all 110 palms).</p>
+    </section>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+      <p id="count" style="color:var(--muted);font-size:.9rem"></p>
+      <button id="clear-all" class="btn danger" data-i18n="clear_demo">Clear demo data</button>
+    </div>
+
+    <section id="history-list" class="history-list"></section>
+  </main>
+
+  <script src="problems.js"></script>
+  <script src="problems-ta.js"></script>
+  <script src="problems-hi.js"></script>
+  <script src="problems-te.js"></script>
+  <script src="problems-kn.js"></script>
+  <script src="problems-ml.js"></script>
+  <script src="problems-bn.js"></script>
+  <script src="problems-mr.js"></script>
+  <script src="langs.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+  <script src="history.js"></script>
+  <script src="chat-key.js"></script>
+  <script src="chatbot.js?v=15"></script>
+  <script src="sw-register.js"></script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ulavan Tech — AI Settings</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1b5e20">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="index.html">
+        <span class="logo-mark">🌿</span>
+        <div>
+          <h1>Ulavan Tech</h1>
+          <p class="logo-tagline">Tamil Nadu Crop Health Scanner</p>
+        </div>
+      </a>
+      <div id="lang-wrap"></div>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="detection.html" data-i18n="nav_detection">Detection</a>
+      <a href="history.html" data-i18n="nav_history">History</a>
+      <a href="about.html" data-i18n="nav_project">Project</a>
+      <a href="settings.html" data-i18n="nav_settings">AI Settings</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="page-title">
+      <h2 data-i18n="set_title">⚙ AI Settings</h2>
+      <p data-i18n="set_lead">Power the smart scan and chat assistant. Changes are saved automatically on every keystroke.</p>
+    </section>
+
+    <section id="settings" class="settings open" aria-label="AI settings">
+      <div id="settings-head" class="settings-head">
+        <h3 data-i18n="set_title">⚙ AI Settings</h3>
+        <span class="gear">⚙</span>
+      </div>
+      <div class="settings-body">
+        <p class="settings-note" data-i18n="set_note">Add an API key to power the smart scan and chat assistant. OpenRouter works with hundreds of models; Gemini keys give a second choice. Leave empty to use the built-in free helper.</p>
+        <div class="settings-field">
+          <label for="set-provider" data-i18n="set_provider">AI provider</label>
+          <select id="set-provider">
+            <option value="free">Free helper (no key)</option>
+            <option value="gemini">Gemini</option>
+            <option value="openrouter">OpenRouter</option>
+          </select>
+        </div>
+        <div class="settings-field">
+          <label for="set-gemini-key" data-i18n="set_gemini_key">Gemini API key</label>
+          <input id="set-gemini-key" type="password" autocomplete="off" spellcheck="false"
+                 placeholder="AIza…" data-i18n-placeholder="set_gemini_ph">
+        </div>
+        <div class="settings-field">
+          <label for="set-gemini-model" data-i18n="set_gemini_model">Gemini model</label>
+          <input id="set-gemini-model" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="gemini-3.6-flash" data-i18n-placeholder="set_gemini_mph">
+        </div>
+        <div class="settings-field">
+          <label for="set-or-key" data-i18n="set_or_key">OpenRouter API key</label>
+          <input id="set-or-key" type="password" autocomplete="off" spellcheck="false"
+                 placeholder="sk-or-v1-…" data-i18n-placeholder="set_or_ph">
+        </div>
+        <div class="settings-field">
+          <label for="set-or-model" data-i18n="set_or_model">OpenRouter model</label>
+          <input id="set-or-model" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="openai/gpt-4o-mini" data-i18n-placeholder="set_or_mph">
+        </div>
+        <div class="settings-row">
+          <span id="settings-saved" class="settings-saved hidden">✓ Saved</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="problems.js"></script>
+  <script src="problems-ta.js"></script>
+  <script src="problems-hi.js"></script>
+  <script src="problems-te.js"></script>
+  <script src="problems-kn.js"></script>
+  <script src="problems-ml.js"></script>
+  <script src="problems-bn.js"></script>
+  <script src="problems-mr.js"></script>
+  <script src="langs.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+  <script src="chat-key.js"></script>
+  <script src="chatbot.js?v=15"></script>
+  <script src="sw-register.js"></script>
+</body>
+</html>

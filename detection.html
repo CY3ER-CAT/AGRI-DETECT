@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1">
+  <title>Ulavan Tech — Date Palm Detection</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1b5e20">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="index.html">
+        <span class="logo-mark">🌴</span>
+        <div>
+          <h1>Ulavan Tech</h1>
+          <p class="logo-tagline">Tamil Nadu Crop Health Scanner</p>
+        </div>
+      </a>
+      <div id="lang-wrap"></div>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="detection.html" data-i18n="nav_detection">Detection</a>
+      <a href="history.html" data-i18n="nav_history">History</a>
+      <a href="about.html" data-i18n="nav_project">Project</a>
+      <a href="settings.html" data-i18n="nav_settings">AI Settings</a>
+    </nav>
+  </header>
+
+  <main class="container">
+
+    <!-- Open / start screen -->
+    <section id="start-screen" class="step active">
+      <div class="start-card">
+        <span class="big-icon">📷</span>
+        <h2 data-i18n="guided_title">Guided 360° Capture</h2>
+        <p id="guided-desc" data-i18n="guided_desc"></p>
+        <button id="start-cam" class="btn" style="min-width:240px" data-i18n="open_cam_btn">Open camera</button>
+        <p class="notice" style="margin-top:14px" data-i18n="no_sensors">No sensors? We still guide you with text and a manual shutter.</p>
+      </div>
+    </section>
+
+    <!-- Live capture screen -->
+    <section id="capture-screen" class="step hidden">
+      <div id="cam-panel">
+        <div id="cam-feed">
+          <video id="camera-view" autoplay playsinline muted></video>
+
+          <!-- top instruction bar -->
+          <div id="instr-bar">
+            <span id="instr-head">Photo 1 of 6</span>
+            <span id="instr-text">Position the plant in the frame and hold steady…</span>
+          </div>
+
+          <!-- progress dots -->
+          <div id="progress-dots"></div>
+
+          <!-- alignment crosshair -->
+          <div id="aim-wrap">
+            <div id="aim-ring" class="ring neutral">
+              <span id="aim-icon">◉</span>
+              <span id="aim-arrow" class="arrow"></span>
+            </div>
+          </div>
+
+          <!-- status line -->
+          <div id="status-line"></div>
+
+          <!-- always-on capture hint (just above the controls) -->
+          <div id="tap-hint"></div>
+
+          <!-- loud sensor guidance: ⟶ LEFT / ⟵ RIGHT / ✓ perfect -->
+          <div id="dir-banner" class="dir-banner hidden"></div>
+        </div>
+
+        <!-- bottom control bar (separate from camera feed) -->
+        <div id="cam-controls">
+          <button id="cancel-cam" class="btn secondary ctrl-cancel">✕</button>
+          <button id="shutter" class="shutter" disabled data-i18n="capture_btn">Capture</button>
+          <button id="pick-cam" class="btn ctrl-pick hidden" data-i18n="pick_photo_btn">Choose photo</button>
+        </div>
+        <input type="file" id="file-input" accept="image/*" capture="environment" hidden>
+      </div>
+    </section>
+
+    <!-- Review screen -->
+    <section id="review-screen" class="step hidden">
+      <h3 data-i18n="review_title">Review your 6 shots</h3>
+      <div id="review-grid" class="review-grid"></div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px">
+        <button id="retake-btn" class="btn secondary" data-i18n="retake_btn">Retake photos</button>
+        <button id="submit-btn" class="btn" data-i18n="submit_btn">Done / Submit</button>
+      </div>
+    </section>
+
+    <!-- Result screen -->
+    <section id="result-screen" class="step hidden">
+      <div id="result-card" class="result-card">
+        <span id="result-icon" class="result-icon"></span>
+        <span id="result-badge" class="risk-badge"></span>
+        <h3 id="result-title"></h3>
+        <p id="result-message"></p>
+        <p id="result-findings" class="result-findings"></p>
+        <span id="method-chip" class="method-chip"></span>
+      </div>
+      <div id="result-solution" class="solution-card">
+        <h3 data-i18n="rec_solution">🍃 Recommended solution</h3>
+        <p id="result-action" class="solution-text"></p>
+      </div>
+      <div class="train-bar">
+        <span class="fb-ask" data-i18n="fb_ask">Was this correct?</span>
+        <span class="fb-btns">
+          <button id="fb-yes" class="fb-btn" data-i18n-attr="title|fb_yes">👍</button>
+          <button id="fb-no" class="fb-btn" data-i18n-attr="title|fb_no">👎</button>
+          <button id="fb-export" class="fb-btn" data-i18n-attr="title|fb_export">⬇</button>
+        </span>
+        <span id="fb-note" class="fb-note"></span>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;max-width:420px;margin:16px auto 0">
+        <button id="save" class="btn" data-i18n="save_history">Save to history</button>
+        <button id="scan-again" class="btn secondary" data-i18n="scan_again">Scan again</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="problems.js"></script>
+  <script src="problems-ta.js"></script>
+  <script src="problems-hi.js"></script>
+  <script src="problems-te.js"></script>
+  <script src="problems-kn.js"></script>
+  <script src="problems-ml.js"></script>
+  <script src="problems-bn.js"></script>
+  <script src="problems-mr.js"></script>
+  <script src="langs.js"></script>
+  <script src="i18n.js"></script>
+  <script src="vendor/tf.min.js"></script>
+  <script src="app.js"></script>
+  <script src="detection.js"></script>
+  <script src="chat-key.js"></script>
+  <script src="chatbot.js?v=15"></script>
+  <script src="sw-register.js"></script>
+</body>
+</html>
