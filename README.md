@@ -46,9 +46,9 @@ Per-step instructions (front → left → back → right → crown → damage cl
 
 `chat-key.js` ships **empty** (`GEMINI_KEY = ""`). A key is only ever present if *you* add yours in **Settings** — saved to your device's localStorage, survives refresh, and is never committed to the repo. No-key users automatically get the offline answer engine + on-device detection.
 
-### 4. Settings page (auto-save)
+### 4. Settings page (Save button)
 
-Provider (Free / Gemini / OpenRouter), keys, and models are edited on `settings.html`. Every keystroke/change persists immediately — verified that a personal key survives a full page reload.
+Keys and provider are edited on `settings.html`. Get a free Gemini key link, paste, press **Save** — persists per-device and survives refresh (verified).
 
 ### 5. Chatbot fixes
 
@@ -58,7 +58,7 @@ Provider (Free / Gemini / OpenRouter), keys, and models are edited on `settings.
 
 ### 6. Offline-first (PWA)
 
-Service worker (`agridetect-v37`) caches every page, all localized data, the vendored TF.js, and the model weights. After the first full load the app + AI work with no connection. `VERSION` is bumped on every change so phones pull updates.
+Service worker (`agridetect-v38`) caches every page, all localized data, the vendored TF.js, and the model weights. After the first full load the app + AI work with no connection. `VERSION` is bumped on every change so phones pull updates.
 
 ---
 
@@ -77,7 +77,6 @@ No key is needed to use the knowledge base, chatbot, or on-device detection. The
 For the optional live AI fallback (chat on topics outside the offline engine, or AI vision review), any user can add **their own free key** in *Settings* → complete each keystroke is saved **on their device** (localStorage) and survives refresh:
 
 - **Gemini (free)** — https://aistudio.google.com/apikey → `AIza…`
-- **OpenRouter** — https://openrouter.ai/keys → `sk-or-v1-…`
 
 Keys are never stored in the repo, never sent to any server other than the provider you chose, and are stored only locally on each device.
 
@@ -110,7 +109,7 @@ Language is selected in the header (Tāmiḻ, हिन्दी, తెలు�
 
 1. **Offline knowledge base** — crop problems, treatments, risk levels (instant, no internet).
 2. **App intents** — capture flow, history, model info, greetings.
-3. **Live model** — only for questions the offline engine can't answer, and only if the user added their own key (free Gemini / OpenRouter); otherwise it honestly says it can't reach the AI.
+3. **Live model** — only for questions the offline engine can't answer, and only if the user added their own Gemini key; otherwise it honestly says it can't reach the AI.
 
 ## 📁 Project structure
 

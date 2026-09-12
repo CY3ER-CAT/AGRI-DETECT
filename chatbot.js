@@ -423,7 +423,6 @@
     return out.join(", ");
   }
 
-  var DEFAULT_OR_MODEL = "openai/gpt-4o-mini";
   var DEFAULT_GEMINI_MODEL = "gemini-3.6-flash";
   var CFG_KEY = "ulavanChatCfg";
 
@@ -434,10 +433,7 @@
       provider: "free",
       geminiKey: (typeof window.GEMINI_KEY === "string") ? window.GEMINI_KEY : "",
       geminiModel: ((typeof window.GEMINI_MODEL === "string") && window.GEMINI_MODEL)
-        ? window.GEMINI_MODEL : DEFAULT_GEMINI_MODEL,
-      openrouterKey: (typeof window.OPENROUTER_KEY === "string") ? window.OPENROUTER_KEY : "",
-      openrouterModel: ((typeof window.OPENROUTER_MODEL === "string") && window.OPENROUTER_MODEL)
-        ? window.OPENROUTER_MODEL : DEFAULT_OR_MODEL
+        ? window.GEMINI_MODEL : DEFAULT_GEMINI_MODEL
     };
     try {
       var s = window.localStorage && window.localStorage.getItem(CFG_KEY);
@@ -449,8 +445,6 @@
         out.provider = o.provider || out.provider;
         out.geminiKey = o.geminiKey || out.geminiKey;
         out.geminiModel = o.geminiModel || out.geminiModel;
-        out.openrouterKey = o.openrouterKey || out.openrouterKey;
-        out.openrouterModel = o.openrouterModel || out.openrouterModel;
       }
     } catch (e) {}
     return out;
@@ -491,15 +485,6 @@
       { "Content-Type": "application/json" },
       { model: "openai", messages: msgs, stream: false },
       new AbortController(), 30000
-    ).then(choiceContent);
-  }
-
-  function openrouterChat(key, model, msgs) {
-    return postChat(
-      "https://openrouter.ai/api/v1/chat/completions",
-      { "Content-Type": "application/json", "Authorization": "Bearer " + key },
-      { model: model, messages: msgs, stream: false },
-      new AbortController(), 60000
     ).then(choiceContent);
   }
 
@@ -571,20 +556,11 @@
       }
       return Promise.resolve(null);
     };
-    var openrouter = function () {
-      if (cfg.openrouterKey) {
-        return retry(function () {
-          return openrouterChat(cfg.openrouterKey, cfg.openrouterModel || DEFAULT_OR_MODEL, msgs);
-        }, 2, 2000);
-      }
-      return Promise.resolve(null);
-    };
     var free = function () { return pollinationsPost(msgs); };
 
     var chain;
-    if (cfg.provider === "gemini") chain = [gemini, openrouter, free];
-    else if (cfg.provider === "openrouter") chain = [openrouter, gemini, free];
-    else chain = cfg.geminiKey ? [gemini, openrouter, free] : [openrouter, free];
+    if (cfg.provider === "gemini") chain = [gemini, free];
+    else chain = cfg.geminiKey ? [gemini, free] : [free];
 
     return chain.reduce(function (acc, step) {
       return acc.then(function (prev) {
@@ -663,7 +639,7 @@
       liveAsk(text).then(function (live) {
         if (typing.parentNode) typing.parentNode.remove();
         var cfg = loadCfg();
-        var busyMsg = (cfg.geminiKey || cfg.openrouterKey) ? chatT("quotaBusy") : chatT("liveBusy");
+        var busyMsg = cfg.geminiKey ? chatT("quotaBusy") : chatT("liveBusy");
         reply(live || busyMsg);
       });
     }, 120);

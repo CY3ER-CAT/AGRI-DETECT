@@ -42,13 +42,12 @@
         <span class="gear">⚙</span>
       </div>
       <div class="settings-body">
-        <p class="settings-note" data-i18n="set_note">Add an API key to power the smart scan and chat assistant. OpenRouter works with hundreds of models; Gemini keys give a second choice. Leave empty to use the built-in free helper.</p>
+        <p class="settings-note" data-i18n="set_note">Add a free Gemini key to power the smart scan and chat assistant. Leave empty to use the built-in free helper.</p>
         <div class="settings-field">
           <label for="set-provider" data-i18n="set_provider">AI provider</label>
           <select id="set-provider">
             <option value="free">Free helper (no key)</option>
             <option value="gemini">Gemini</option>
-            <option value="openrouter">OpenRouter</option>
           </select>
         </div>
         <div class="settings-field">
@@ -62,16 +61,6 @@
           <label for="set-gemini-model" data-i18n="set_gemini_model">Gemini model</label>
           <input id="set-gemini-model" type="text" autocomplete="off" spellcheck="false"
                  placeholder="gemini-3.6-flash" data-i18n-placeholder="set_gemini_mph">
-        </div>
-        <div class="settings-field">
-          <label for="set-or-key" data-i18n="set_or_key">OpenRouter API key</label>
-          <input id="set-or-key" type="password" autocomplete="off" spellcheck="false"
-                 placeholder="sk-or-v1-…" data-i18n-placeholder="set_or_ph">
-        </div>
-        <div class="settings-field">
-          <label for="set-or-model" data-i18n="set_or_model">OpenRouter model</label>
-          <input id="set-or-model" type="text" autocomplete="off" spellcheck="false"
-                 placeholder="openai/gpt-4o-mini" data-i18n-placeholder="set_or_mph">
         </div>
         <div class="settings-row">
           <button id="settings-save" class="settings-save" data-i18n="set_save">Save</button>

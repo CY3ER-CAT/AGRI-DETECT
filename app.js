@@ -236,6 +236,7 @@ function markActiveNav() {
   wireModal();
   markActiveNav();
   wireSettings();
+  wireKeyPrompt();
 
   const grid = document.getElementById("home-grid");
   const search = document.getElementById("search");
@@ -274,7 +275,7 @@ function markActiveNav() {
   var CFG_KEY = "ulavanChatCfg";
 
   function settingsLoad() {
-    var c = { provider: "free", geminiKey: "", geminiModel: "", openrouterKey: "", openrouterModel: "" };
+    var c = { provider: "free", geminiKey: "", geminiModel: "" };
     try {
       var s = window.localStorage && window.localStorage.getItem(CFG_KEY);
       if (s) c = Object.assign(c, JSON.parse(s));
@@ -288,13 +289,9 @@ function markActiveNav() {
     var prov = document.getElementById("set-provider");
     var gk = document.getElementById("set-gemini-key");
     var gm = document.getElementById("set-gemini-model");
-    var ok = document.getElementById("set-or-key");
-    var om = document.getElementById("set-or-model");
     if (prov) prov.value = c.provider || "free";
     if (gk) gk.value = c.geminiKey || "";
     if (gm) gm.value = c.geminiModel || "";
-    if (ok) ok.value = c.openrouterKey || "";
-    if (om) om.value = c.openrouterModel || "";
   }
 
   function wireSettings() {
@@ -316,9 +313,7 @@ function markActiveNav() {
       return {
         provider: document.getElementById("set-provider").value,
         geminiKey: (document.getElementById("set-gemini-key").value || "").trim(),
-        geminiModel: (document.getElementById("set-gemini-model").value || "").trim(),
-        openrouterKey: (document.getElementById("set-or-key").value || "").trim(),
-        openrouterModel: (document.getElementById("set-or-model").value || "").trim()
+        geminiModel: (document.getElementById("set-gemini-model").value || "").trim()
       };
     }
     function persist() {
@@ -333,13 +328,40 @@ function markActiveNav() {
     }
     if (head) head.addEventListener("click", function () { panel.classList.toggle("open"); });
     /* Auto-save: every change to provider/keys/models persists immediately. */
-    ["set-provider", "set-gemini-key", "set-gemini-model", "set-or-key", "set-or-model"]
+    ["set-provider", "set-gemini-key", "set-gemini-model"]
       .forEach(function (id) {
         var el = document.getElementById(id);
         if (el) el.addEventListener(el.tagName === "SELECT" ? "change" : "input", persist);
       });
     var oldSave = document.getElementById("settings-save");
     if (oldSave) oldSave.addEventListener("click", persist);
+  }
+
+  /* Dismissible "Add key" banner shown on the home page when no Gemini
+     key is configured. */
+  var KEY_PROMPT_KEY = "ulavanKeyPromptDismissed";
+  function wireKeyPrompt() {
+    var banner = document.getElementById("key-prompt");
+    if (!banner) return;
+    var dismissBtn = document.getElementById("key-prompt-close");
+    function update() {
+      var dismissed = false;
+      try { dismissed = window.localStorage && window.localStorage.getItem(KEY_PROMPT_KEY) === "1"; } catch (e) {}
+      var cfg = settingsLoad();
+      var hasKey = !!(cfg.geminiKey || window.GEMINI_KEY);
+      banner.classList.toggle("hidden", dismissed || hasKey);
+    }
+    /* localStorage is not readable during early script eval on a reload,
+       so compute the visible/hidden state after the DOM is interactive. */
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", update);
+    } else {
+      update();
+    }
+    if (dismissBtn) dismissBtn.addEventListener("click", function () {
+      try { if (window.localStorage) window.localStorage.setItem(KEY_PROMPT_KEY, "1"); } catch (e) {}
+      update();
+    });
   }
 
   /* Re-render the whole page when the language changes. */

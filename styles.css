@@ -1673,6 +1673,39 @@ body.cam-open .container > .page-title {
   outline: none;
   border-color: var(--green);
 }
+.key-prompt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: .9rem;
+  color: #2e7d32;
+}
+.key-prompt.hidden {
+  display: none;
+}
+.key-prompt a {
+  font-weight: 700;
+  color: var(--green);
+  white-space: nowrap;
+}
+.key-prompt-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.key-prompt-close:hover {
+  color: #000;
+}
 .settings-row {
   display: flex;
   align-items: center;

@@ -585,26 +585,20 @@ function localAnalyse() {
   });
 }
 
-/* ---- Optional AI vision analysis. Gemini (free tier) first, then OpenRouter. ---- */
+/* ---- Optional AI vision analysis. Gemini (free tier). ---- */
 function detectionCfg() {
-   let cfg = { provider: "free", key: "", model: "", geminiKey: "", geminiModel: "" };
+   let cfg = { provider: "free", geminiKey: "", geminiModel: "" };
    try {
      const s = window.localStorage && window.localStorage.getItem("ulavanChatCfg");
      if (s) {
        const o = JSON.parse(s);
        cfg.provider = o.provider || "free";
-       cfg.key = o.openrouterKey || "";
-       cfg.model = o.openrouterModel || "";
        cfg.geminiKey = o.geminiKey || "";
        cfg.geminiModel = o.geminiModel || "";
      }
    } catch (e) {}
    if (!cfg.geminiKey && typeof window.GEMINI_KEY === "string") cfg.geminiKey = window.GEMINI_KEY;
    if (!cfg.geminiModel) cfg.geminiModel = (typeof window.GEMINI_MODEL === "string") ? window.GEMINI_MODEL : "gemini-3.6-flash";
-   if (!cfg.key && typeof window.OPENROUTER_KEY === "string") cfg.key = window.OPENROUTER_KEY;
-   if (!cfg.model) cfg.model = (typeof window.OPENROUTER_MODEL === "string") ? window.OPENROUTER_MODEL : "openai/gpt-4o-mini";
-   if (cfg.provider === "openrouter") cfg.geminiKey = "";
-   if (cfg.provider === "gemini") cfg.key = "";
    return cfg;
  }
 
@@ -651,7 +645,6 @@ function visionAnalyse(shotsToAnalyse) {
     try { return decodeURIComponent(new URLSearchParams(window.location.search).get("name") || ""); } catch (e) { return ""; }
   })();
   if (cfg.geminiKey) return geminiVision(shotsToAnalyse, cfg, cropName);
-  if (cfg.key) return openrouterVision(shotsToAnalyse, cfg, cropName);
   return Promise.resolve(null);
 }
 
@@ -682,34 +675,6 @@ function geminiVision(shotsToAnalyse, cfg, cropName) {
         j.candidates[0].content && j.candidates[0].content.parts &&
         j.candidates[0].content.parts.map((p) => p.text || "").join("");
       return parseVisionJson(extractJson(text));
-    })
-    .catch(() => { clearTimeout(timer); return null; });
-}
-
-/* OpenRouter (option B) multimodal fallback. */
-function openrouterVision(shotsToAnalyse, cfg, cropName) {
-  const parts = shotsToAnalyse.map((d) => ({
-    type: "image_url",
-    image_url: { url: d }
-  }));
-  const textPart = { type: "text", text: visionPrompt(cropName) };
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 60000);
-  return fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + cfg.key },
-    body: JSON.stringify({
-      model: cfg.model,
-      messages: [{ role: "user", content: [textPart].concat(parts) }],
-      stream: false
-    }),
-    signal: ctrl.signal
-  })
-    .then((r) => (r.ok ? r.json() : null))
-    .then((j) => {
-      clearTimeout(timer);
-      const content = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
-      return parseVisionJson(extractJson(content));
     })
     .catch(() => { clearTimeout(timer); return null; });
 }
