@@ -1,7 +1,7 @@
 /* AGRI DETECT (Ulavan Tech) — offline-first service worker.
    Cache-first for same-origin GETs, network-first for page navigations,
    so the app works fully offline after first visit. */
-const VERSION = "agridetect-v44";
+const VERSION = "agridetect-v45";
 const CORE = [
   "./",
   "index.html",
@@ -98,13 +98,19 @@ self.addEventListener("periodicsync", function (e) {
         var now = Date.now();
         var due = list.filter(function (x) { return x.at && !x.done && now >= x.at; });
         if (!due.length) return null;
+        due.forEach(function (x) { x.done = true; });
         return Promise.all(due.map(function (x) {
-          return self.registration.showNotification("48-hour recheck reminder", {
-            body: x.crop + " was flagged — recheck it now.",
+          return self.registration.showNotification(x.title || "48-hour recheck reminder", {
+            body: x.body || (x.crop + " was flagged — recheck it now."),
             icon: "icons/icon-192.png",
             tag: "followup-" + x.id,
           });
-        }));
+        })).then(function () {
+          return caches.open("agridetect-followups")
+            .then(function (c) {
+              return c.put("__followups__.json", new Response(JSON.stringify(list)));
+            });
+        });
       })
       .catch(function (err) { console.warn("followup sync:", err); })
   );

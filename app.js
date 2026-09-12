@@ -238,14 +238,18 @@ var FOLLOWUP_CACHE = "agridetect-followups";
 var FOLLOWUP_URL = "__followups__.json";
 
 /* Mirror follow-up records into a Cache entry so the service worker can
-   re-notify overdue rechecks even with no page open. */
+   re-notify overdue rechecks even with no page open. The localized title
+   and body are baked in here so the worker can show them verbatim. */
 window.followupSync = function () {
   try {
     if (!("caches" in window)) return;
     var h = JSON.parse(localStorage.getItem("agri_history") || "[]");
     var due = h
       .map(function (r) {
-        return { id: r.id, crop: r.crop, at: r.followUpAt, done: !!r.followUpDone };
+        return {
+          id: r.id, crop: r.crop, at: r.followUpAt, done: !!r.followUpDone,
+          title: t("followup_title"), body: fill(t("followup_body"), { CROP: r.crop }),
+        };
       })
       .filter(function (x) { return x.at; });
     caches.open(FOLLOWUP_CACHE).then(function (c) {
@@ -254,9 +258,35 @@ window.followupSync = function () {
   } catch (e) {}
 };
 
-/* Check for due follow-ups on every app open (works on all browsers). */
+/* Check for due follow-ups on every app open (works on all browsers).
+   First reconciles the worker's cache-mirror "done" flags back into
+   localStorage so a reminder fired while the app was closed is never
+   re-fired from the page. */
 function checkFollowUps() {
   followupSync();
+  try {
+    if ("caches" in window) {
+      caches.open(FOLLOWUP_CACHE).then(function (c) {
+        return c.match(FOLLOWUP_URL);
+      }).then(function (res) {
+        if (!res) return;
+        return res.json().then(function (mirror) {
+          var byId = {};
+          mirror.forEach(function (m) { byId[m.id] = m; });
+          var h = JSON.parse(localStorage.getItem("agri_history") || "[]");
+          var changed = false;
+          h.forEach(function (r) {
+            var m = byId[r.id];
+            if (r.followUpAt && m && m.done && !r.followUpDone) {
+              r.followUpDone = true;
+              changed = true;
+            }
+          });
+          if (changed) localStorage.setItem("agri_history", JSON.stringify(h));
+        });
+      }).catch(function () {});
+    }
+  } catch (e) {}
   try {
     var h = JSON.parse(localStorage.getItem("agri_history") || "[]");
     var changed = false;
