@@ -276,3 +276,9 @@ Retrained the on-device model on **40,000 images (20k healthy + 20k diseased, ev
 ---
 
 Made for the Ulavan Tech plantation project. 🌴
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+— **CY3ER-CAT**
