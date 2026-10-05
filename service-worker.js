@@ -1,7 +1,7 @@
 /* AGRI DETECT (Ulavan Tech) — offline-first service worker.
    Cache-first for same-origin GETs, network-first for page navigations,
    so the app works fully offline after first visit. */
-const VERSION = "agridetect-v46";
+const VERSION = "agridetect-v47";
 const CORE = [
   "./",
   "index.html",
@@ -39,8 +39,10 @@ self.addEventListener("activate", function (e) {
     caches.keys()
       .then(function (keys) {
         return Promise.all(
-          keys.filter(function (k) { return k.indexOf("agridetect-") === 0 && k !== VERSION; })
-              .map(function (k) { return caches.delete(k); })
+          // Follow-up data is persistent user data, not a versioned asset cache.
+          keys.filter(function (k) {
+            return k.indexOf("agridetect-") === 0 && k !== VERSION && k !== "agridetect-followups";
+          }).map(function (k) { return caches.delete(k); })
         );
       })
       .then(function () { return self.clients.claim(); })
@@ -62,7 +64,17 @@ self.addEventListener("fetch", function (e) {
           return res;
         })
         .catch(function () {
-          return caches.match(req).then(function (m) { return m || caches.match("index.html"); });
+          return caches.match(req).then(function (m) {
+            if (m) return m;
+            // Crop parameters belong to the page URL, not the precached HTML key.
+            // Preserve the deployment subpath while looking up the page shell.
+            var pageUrl = new URL(req.url);
+            pageUrl.search = "";
+            pageUrl.hash = "";
+            return caches.match(pageUrl.href).then(function (page) {
+              return page || caches.match("index.html");
+            });
+          });
         })
     );
     return;
