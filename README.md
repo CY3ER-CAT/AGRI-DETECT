@@ -212,9 +212,108 @@ Language is selected in the header (Tāmiḻ, हिन्दी, తెలు�
 ├── chat-key.js         Key placeholders (shipped empty)
 ├── models/plant-health/  TF.js plant-health model (bundled, 4.4 MB)
 ├── vendor/tf.min.js    TensorFlow.js 4.22.0 (vendored, no CDN)
+├── tests/
+│   ├── run-tests.js    Zero-dependency Node unit tests (runs the real sources)
+│   └── README.md       How the tests work + what they cover
 ├── service-worker.js   Offline cache (bump VERSION on every change)
 └── images/             Crop & field photos
 ```
+
+---
+
+## 🔌 External API & data schema
+
+There is **no backend**. Pages are static assets; the only external
+communication is the **optional, user-keyed Gemini call**. Everything else
+persists on the device.
+
+### Gemini API (the only network call)
+
+Both the chat fallback and the optional vision pass call Gemini's
+`generateContent` REST endpoint (free tier, Google AI Studio key).
+
+| | |
+|---|---|
+| **Endpoint** | `POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent` |
+| **Model** | `gemini-3.6-flash` (fixed) |
+| **Auth** | `x-goog-api-key: <key>` header — **never** `?key=` in the URL |
+| **Vision body** | `{ contents:[{ role:"user", parts:[{ inline_data:{ mime_type:"image/jpeg", data:<base64> } }, …] }], generationConfig:{ responseMimeType:"application/json", temperature:0.2 } }` |
+| **Vision response** | parsed from `candidates[0].content.parts[].text` via `extractJson()` → `{ risk: low|medium|high|no_plant, confidence: 0..100, issues: string[], notes: string }` |
+| **Chat body** | system + user text in one `contents[0].parts[].text`, `temperature: 0.6` |
+| **Failure contract** | any non-2xx / malformed JSON / timeout (90 s vision, 60 s chat) resolves to `null` — the app falls back to the offline engine, it never blocks |
+
+The key is read from `localStorage.ulavanChatCfg` (set in AI Settings) and is
+only ever sent to Google Gemini. No other domain is contacted at runtime.
+
+### LocalStorage schema
+
+| Key | Type | Contents | Cap |
+|---|---|---|---|
+| `agri_history` | JSON array | Detection scan records (schema below) | 50 records (newest first) |
+| `ulavanChatCfg` | JSON object | `{ provider, geminiKey, geminiModel }` | — |
+| `ulavanTrainLog` | JSON array | Field feedback votes (labels + thumbnails for re-training) | 200 entries |
+| `ulavanKeyPromptDismissed` | string | `"1"` when the "Add a Gemini key" banner was dismissed | — |
+| `ulavan_lang` | string | Language code (`en`, `ta`, `hi`, …) | — |
+
+**`agri_history` scan record:**
+
+```jsonc
+{
+  "id": 1728,              // Date.now()
+  "crop": "Date Palm — Palm 12", // display name from ?name=
+  "cropId": "date-palm",        // canonical crop id from ?crop=
+  "risk": "medium",             // low | medium | high | no_plant
+  "date": "12 Sep 2026, 08:40", // en-IN locale string
+  "thumb": "data:image/jpeg;base64,…", // first photo, 200 px ("" if none)
+  "note": "…",                  // localized history note
+  "confidence": 72,             // 0–100
+  "method": "local",            // local | model | vision
+  "findings": "damage_spots, too_blurry",
+  "followUpAt": 1767945600000,  // added for medium/high risk (48 h recheck)
+  "followUpDone": false         // set true once reminded
+}
+```
+
+### Service-worker cache
+
+- `agridetect-vNN` — the versioned app shell: every page, all JS/CSS, the
+  vendored TF.js, and the model weights. Bump `VERSION` on every deploy.
+- `agridetect-followups` — mirrors the due-follow-up list (`__followups__.json`)
+  so the worker can push a 48 h recheck notification even when the app is closed
+  (Android Chrome background sync).
+
+---
+
+## 🧪 Testing & error boundaries
+
+### Unit tests (headless, real source)
+
+`node tests/run-tests.js` loads the real JS files into a stubbed browser and
+runs **31 assertions** — risk/health scoring, Gemini JSON parsing, the
+healthy/damage pixel analysis, the NOT-A-PLANT + blur + two-photo safety gates,
+the multilingual chatbot KB engine, and history round-trips. See
+[tests/README.md](tests/README.md) for the full breakdown.
+
+### Error boundaries — every layer fails safe
+
+| Layer | Failure | Fallback |
+|---|---|---|
+| **On-device model** | model load fails / inference throws / TensorFlow.js absent | silent → pixel-only local analysis; method chip says **Local analysis** |
+| **Vision (Gemini)** | no key / quota / timeout / malformed JSON | explicitly skipped → on-device result; honest "quota" chat reply |
+| **Pixel decode** | a photo fails to load/scale | neutral per-photo defaults, never a crash |
+| **NOT-A-PLANT gate** | photos are a face/wall/sky (≈0% green) | result is `no_plant`, never a bogus High-risk |
+| **Blur gate** | < 3 sharp photos | refuses an "act now" warning, caps at Low/Medium |
+| **Two-photo rule** | only 1 photo shows damage | never above a Medium/Minor verdict |
+| **localStorage** | read/write quota or privacy errors | `try/catch` around every access; UI stays honest |
+| **XSS** | untrusted strings (History names, search, chat) | every `innerHTML` insertion goes through `esc()` |
+| **Network** | offline after first load | Service-worker cache-first for assets, offline KB for chat |
+| **Sensors/camera** | no orientation permission, no `getUserMedia` (e.g. plain `http://`) | always-enabled shutter + photo-picker fallback |
+
+`window.agriTest`, `window.cbTest` and `window.historyTest` are test-only hooks;
+they expose the pure internals to the unit runner without changing runtime
+behavior.
+
+---
 
 ## ⚖️ Detected problems (sample)
 

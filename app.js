@@ -86,6 +86,10 @@ function problemMatches(plant, term) {
   );
 }
 
+/* Returns [{ plant, hits }] for a search term. A crop whose localized name
+   matches is listed first; otherwise crops matched only via a problem name /
+   symptom / cause are listed with those problem hits as a hint. Empty term
+   returns the whole catalogue (hits: []) for the default home grid. */
 function searchPlants(term) {
   if (!term) return PLANTS.map((p) => ({ plant: p, hits: [] }));
   const out = [];
@@ -185,6 +189,8 @@ function showProblem(p) {
   resetModalScroll();
 }
 
+/* Maps a risk string to its CSS class. Unknown/empty risks default to "low"
+   — navigation should never crash on bad data, only downgrade styling. */
 function riskClass(risk) {
   const r = (risk || "").toLowerCase();
   if (r === "high") return "high";

@@ -47,6 +47,10 @@ const pickBtn = document.getElementById("pick-cam");
 const shutterBtn = document.getElementById("shutter");
 
 /* ---------------------------- 2. CAMERA ---------------------------- */
+/* Starts the live camera stream (rear-facing preferred). Throws if the
+   browser cannot give us ANY camera, so the caller can fall back to the
+   photo picker. Retries without the "environment" hint because some
+   Android browsers reject ideal-facingMode on the first attempt. */
 async function startCamera() {
   stopStream();
   const md = navigator.mediaDevices;
@@ -447,6 +451,9 @@ function imageHealthScore(dataUrl) {
   });
 }
 
+/* Maps a 0..1 health score to a user-facing risk + confidence %.
+   Confidence widens as the score moves away from the ambiguous middle,
+   so borderline readings report a lower, more honest confidence. */
 function healthToRisk(h) {
   if (h >= 0.55) return { risk: "low", conf: 60 + Math.round((h - 0.55) * 80) };
   if (h >= 0.30) return { risk: "medium", conf: 55 + Math.round((h - 0.30) * 120) };
@@ -640,6 +647,9 @@ function parseVisionJson(o) {
   };
 }
 
+/* Runs the optional live vision pass. Returns null (never rejects) when no
+   Gemini key is configured, fetch is absent, or any part of the pipeline
+   fails — the caller then uses the on-device local analysis instead. */
 function visionAnalyse(shotsToAnalyse) {
   if (typeof window.fetch !== "function") return Promise.resolve(null);
   const cfg = detectionCfg();
@@ -650,7 +660,10 @@ function visionAnalyse(shotsToAnalyse) {
   return Promise.resolve(null);
 }
 
-/* Gemini generateContent via the FREE API tier (aistudio.google.com/apikey). */
+/* Gemini generateContent (free tier). 90s abort on the request; any
+   non-2xx, malformed JSON, or missing candidates resolves to null so runAnalysis()
+   is never left stuck. The API key travels in the x-goog-api-key header, never
+   in a URL query string, so it cannot leak via history/proxy logs. */
 function geminiVision(shotsToAnalyse, cfg, cropName) {
   const parts = shotsToAnalyse
     .filter((d) => d && d.indexOf("data:image") === 0)
@@ -684,6 +697,9 @@ function geminiVision(shotsToAnalyse, cfg, cropName) {
     .catch(() => { clearTimeout(timer); return null; });
 }
 
+/* Downscales a data-URL JPEG so 6 photos can be held in memory and (when a
+   key is present) uploaded to Gemini without blowing request limits. Returns
+   "" (never throws) on any image load/encode failure. */
 async function resizeAnalyseDataUrl(dataUrl) {
   return resizeDataUrl(dataUrl, 512);
 }
@@ -879,6 +895,10 @@ function makeThumb(url) {
     img.src = url;
   });
 }
+/* Writes the accepted/rejected label + thumbnails of a scan into
+   ulavanTrainLog (capped at 200 entries) so field feedback can later be
+   exported (.ndjson) and merged into the next training run. Quota errors
+   are swallowed and the UI is kept honest about what got saved. */
 function fbVote(correct) {
   const thumbsEl = document.getElementById("fb-note");
   Promise.all((window._currentThumbs || []).slice(0, 6).map(makeThumb)).then((thumbs) => {
@@ -919,6 +939,26 @@ function fbExport() {
 document.getElementById("fb-yes").addEventListener("click", () => fbVote(true));
 document.getElementById("fb-no").addEventListener("click", () => fbVote(false));
 document.getElementById("fb-export").addEventListener("click", fbExport);
+
+/* ---------------------------- Test hooks ----------------------------
+   Minimal, behavior-neutral surface exposed ONLY for the unit-test runner
+   (tests/run-tests.js). None of these change runtime behavior — they make
+   internal pure functions reachable from a Node test context that stubs the
+   browser. Rendering/DOM paths are deliberately NOT exposed. */
+window.agriTest = {
+  /* Allow tests to inject synthetic photo data URLs into the capture flow
+     without opening the camera (the screen-state machine is untouched). */
+  setShots: function (arr) { shots = arr; },
+  getShots: function () { return shots; },
+  localAnalyse: localAnalyse,
+  imageHealthScore: imageHealthScore,
+  imageModelHealth: imageModelHealth,
+  healthToRisk: healthToRisk,
+  extractJson: extractJson,
+  parseVisionJson: parseVisionJson,
+  resizeDataUrl: resizeDataUrl,
+  currentSteps: function () { return STEPS; },
+};
 
 /* init */
 (async function init() {

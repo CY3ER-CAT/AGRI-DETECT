@@ -683,9 +683,19 @@
     build();
   }
 
+  /* Test hooks (tests/run-tests.js). Exposes ONLY the pure matching engine —
+     no DOM/panel APIs — so the multilingual knowledge base can be asserted
+     headlessly in Node with a stubbed browser. Runtime behavior is unchanged. */
   window.cbTest = {
     liveAsk: liveAsk,
     loadCfg: loadCfg,
-    liveSys: liveSys
+    liveSys: liveSys,
+    match: match,
+    kbAnswer: kbAnswer,
+    norm: norm,
+    buildIndex: buildIndex,
+    tokenPick: tokenPick,
+    globalTokenPick: globalTokenPick,
+    isBareCrop: isBareCrop,
   };
 })();

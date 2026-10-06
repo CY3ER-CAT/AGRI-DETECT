@@ -1,3 +1,12 @@
+/* AGRI DETECT — History (local detection records).
+   Persistence schema (single localStorage key, see schema docs in README):
+     agri_history: JSON array of scan records, newest first, capped at 50.
+   A record is the object produced by detection.js's saveToHistory():
+     { id, crop, cropId, risk, date, thumb, note, confidence, method,
+       findings, [followUpAt], [followUpDone] }.
+   Three demo rows are seeded on first ever load so a fresh install is not empty.
+   The delete buttons and the per-record detail are 100% local — nothing here
+   touches the network. */
 const STORAGE_KEY = "agri_history";
 
 const SEED = [
@@ -144,6 +153,14 @@ document.getElementById("clear-all").addEventListener("click", () => {
 
 window.onLangChange = function () {
   renderHistory();
+};
+
+/* Test hook for tests/run-tests.js — lets the runner exercise the real
+   load/save round-trip and the demo-seed path without touching the DOM. */
+window.historyTest = {
+  STORAGE_KEY: STORAGE_KEY,
+  loadHistory: loadHistory,
+  saveHistory: saveHistory,
 };
 
 renderHistory();

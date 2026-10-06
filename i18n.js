@@ -35,7 +35,9 @@
     return (map && map[risk]) || (map && map[key]) || risk;
   };
 
-  /* HTML-escape a string before it is interpolated into innerHTML. */
+  /* HTML-escape a string before it is interpolated into innerHTML.
+     THE single XSS line of defence for every dynamic string (History names,
+     search terms, chat bubbles). Always pair untrusted text with esc(). */
   window.esc = function (s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
