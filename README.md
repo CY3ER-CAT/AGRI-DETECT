@@ -2,6 +2,10 @@
 
 **AI-powered crop health & plant-care assistant built for Tamil Nadu farmers.** Multi-language, works fully offline for knowledge, chat, and on-device photo detection. No server, no backend, no API key required to use the core features.
 
+## 🖥️ Dashboard preview
+
+![AgriDetect dashboard](assets/dashboard.png)
+
 ---
 
 ## ✨ Features
